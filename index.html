@@ -258,13 +258,13 @@
       font-size: clamp(34px, 4vw, 52px);
       font-weight: 800;
       z-index: 8;
-      transition: background-color 220ms ease, border-color 220ms ease, color 220ms ease;
+      transition: background-color 260ms ease, border-color 260ms ease, box-shadow 260ms ease;
     }
 
-    .digit-circle.success {
-      background: #CFF5D1;
-      border-color: #2E9B42;
-      color: #2E9B42;
+    .digit-circle.correct-hit {
+      background: #B8F5B8;
+      border-color: #2E8B57;
+      box-shadow: 0 0 0 8px rgba(46, 139, 87, 0.12);
     }
 
     .shake {
@@ -456,7 +456,7 @@
   <div id="app"></div>
 
   <script>
-    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwDfVzoFwsRNYMq_qzHMqp0UizP6rQcbJ0gln6GL9GG7rm91kdw_fvwQcgl02a5N45T/exec";
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxSwR7ul-2mLfDjkPZIMzY0K_QUXgd-aPSkKvji3opERGDmDpumMfBwX2mBDD9g33WuOQ/exec";
 
     const CONFIG = {
       stPracticeTrials: 3,
@@ -716,16 +716,21 @@
       state.digitCircleEl = circleEl;
     }
 
+    function showCorrectDigitFeedback() {
+      if (!state.digitCircleEl) return;
+      state.digitCircleEl.classList.add('correct-hit');
+    }
+
+    function clearCorrectDigitFeedback() {
+      if (!state.digitCircleEl) return;
+      state.digitCircleEl.classList.remove('correct-hit');
+    }
+
     function shakeDigitCircle() {
       if (!state.digitCircleEl) return;
       state.digitCircleEl.classList.remove('shake');
       void state.digitCircleEl.offsetWidth;
       state.digitCircleEl.classList.add('shake');
-    }
-
-    function setDigitCircleSuccess(isSuccess) {
-      if (!state.digitCircleEl) return;
-      state.digitCircleEl.classList.toggle('success', !!isSuccess);
     }
 
     function registerDigitFailure(applyPenalty, onPenaltyApplied) {
@@ -738,12 +743,15 @@
     }
 
     function onDigitTick(applyPenalty, onPenaltyApplied) {
+      clearCorrectDigitFeedback();
+
       if (state.currentDigit === 3 && !state.digitThreeHandled) {
         registerDigitFailure(applyPenalty, onPenaltyApplied);
       }
-      setDigitCircleSuccess(false);
+
       state.currentDigit = randomInt(0, 9);
       state.digitThreeHandled = false;
+
       if (state.digitCircleEl) state.digitCircleEl.textContent = String(state.currentDigit);
     }
 
@@ -754,7 +762,6 @@
       state.digitThreeHandled = false;
       state.penaltyThisTrial = 0;
       circleEl.textContent = String(state.currentDigit);
-      setDigitCircleSuccess(false);
 
       state.digitKeyListener = function(event) {
         if (event.code !== 'Space') return;
@@ -762,6 +769,7 @@
 
         if (state.currentDigit === 3) {
           state.digitThreeHandled = true;
+          showCorrectDigitFeedback();
         } else {
           registerDigitFailure(applyPenalty, onPenaltyApplied);
         }
@@ -780,6 +788,7 @@
         window.removeEventListener('keydown', state.digitKeyListener);
         state.digitKeyListener = null;
       }
+      clearCorrectDigitFeedback();
       state.currentDigit = null;
       state.digitThreeHandled = false;
       state.digitCircleEl = null;
